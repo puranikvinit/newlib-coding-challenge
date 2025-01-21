@@ -33,7 +33,7 @@ The test vector used for the number of bytes is `[0, 3, 15, 32]`. The number of 
 
 The bonus challenge was to enable the modified function to also be functional in cases where misaligned memory accesses are not allowed (causing the processor to be caught in the state of an exception) (`__riscv_misaligned_avoid == 1`). The approach taken for this is as follows:
 
-- Check if the input address is word-aligned (because, as explained above, the target machine is expected to be 32-bit).
+- Check if the input address is word-aligned.
 - If yes, then call the `memset_mod` function as usual.
 - If no, then store the write-value byte-by-byte until the address becomes word-aligned.
 
@@ -42,7 +42,7 @@ The test vector used for the number of bytes is `[0, 3, 15, 32]`. The number of 
 ### Caveats
 
 - In cases where the input address is word-aligned, `memset_bonus` takes additional 2 clock cycles when the number of bytes to be written is 0, and 4 additional clock cycles when the number of bytes is non-zero.
-- In cases where the input address is not word-aligned, and the processor supports misaligned address accesses, of course `memset_bonus` takes significantly more cycles as the number of bytes increases.
+- In cases where the input address is not word-aligned, and the processor supports misaligned address accesses, of course `memset_bonus` takes significantly more cycles as the number of `sb` stores increases.
 - In cases where the input address is not word-aligned, and the processor does not support misaligned address accesses, using the `memset_mod` function traps the processor into an exception:
 
 ```
@@ -53,6 +53,8 @@ core   0:           tval 0x0000000000000000
 - For writing bytes into the memory when the address is not word-aligned, I have directly written the logic to store the byte directly rather than calling the `memset_mod` function, to save some static code space.
 
 ## Performance Comparisons
+
+A basic functional test has been run on the spike RISC-V instruction set simulator, along with measuring the clock cycles for each version of the memset function. Following are the results:
 
 ![For memory accesses to word-aligned locations](assets/aligned_mem_graph.png)
 
